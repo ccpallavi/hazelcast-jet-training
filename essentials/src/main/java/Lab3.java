@@ -14,10 +14,17 @@
  * limitations under the License.
  */
 
+import com.hazelcast.cardinality.impl.operations.AggregateOperation;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.Job;
+import com.hazelcast.jet.aggregate.AggregateOperations;
+import com.hazelcast.jet.function.ComparatorEx;
 import com.hazelcast.jet.pipeline.Pipeline;
+import com.hazelcast.jet.pipeline.Sinks;
+import com.hazelcast.jet.pipeline.WindowDefinition;
+import dto.Trade;
+import sources.TradeSource;
 
 public class Lab3 {
 
@@ -38,15 +45,19 @@ public class Lab3 {
         Pipeline p = Pipeline.create();
 
         // 1 - Read from the Trade Source (sources.TradeSource)
+        p.drawFrom(TradeSource.tradeSource())
 
         // 2 - Without timestamps
+        .withoutTimestamps()
 
         // 3 - Compute max rolling price
         // - the max will be updated and emitted with each incoming trade
         // - use com.hazelcast.jet.aggregate.AggregateOperations library with aggregations
         // - use com.hazelcast.jet.function.ComparatorEx library
+        .rollingAggregate(AggregateOperations.maxBy(ComparatorEx.comparingInt(Trade::getPrice)))
 
         // 4 - Drain max to logger sink
+        .drainTo(Sinks.logger());
 
         return p;
     }

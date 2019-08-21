@@ -17,6 +17,10 @@
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.pipeline.Pipeline;
+import com.hazelcast.jet.pipeline.Sinks;
+import com.hazelcast.jet.pipeline.Sources;
+
+import static com.hazelcast.jet.Traversers.traverseArray;
 
 public class Lab1 {
 
@@ -42,12 +46,16 @@ public class Lab1 {
         // 1 - Stream new lines into the job
         // - use drawFrom on your pipeline
         // - Use fileWatcher source from com.hazelcast.jet.pipeline.Sources
+        p.drawFrom(Sources.fileWatcher(DIRECTORY))
 
         // 2 - Without timestamps - we don't need timestamped stream now
+            .withoutTimestamps()
+                .filter(line -> !"hello".equalsIgnoreCase(line))
 
         // 3 - Print results
         // - Use drainTo on your pipeline
         // - Use logger sink from com.hazelcast.jet.pipeline.Sinks;
+            .drainTo(Sinks.logger());
 
         // 4 - Run this pipeline to test it!
         // Add text lines to the file.
@@ -60,6 +68,7 @@ public class Lab1 {
         // STEP 2: Filter out all lines which are equal to the string "hello"
         // use filter() on your pipeline
         // use lambda to define the predicate
+
 
         return p;
     }

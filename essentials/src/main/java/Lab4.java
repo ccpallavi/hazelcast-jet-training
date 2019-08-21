@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
+import com.hazelcast.cardinality.impl.operations.AggregateOperation;
 import com.hazelcast.jet.Jet;
 import com.hazelcast.jet.JetInstance;
 import com.hazelcast.jet.Job;
+import com.hazelcast.jet.aggregate.AggregateOperations;
 import com.hazelcast.jet.pipeline.Pipeline;
+import com.hazelcast.jet.pipeline.Sinks;
+import com.hazelcast.jet.pipeline.WindowDefinition;
+import dto.Trade;
+import sources.TradeSource;
 
 public class Lab4 {
 
@@ -39,22 +45,25 @@ public class Lab4 {
         Pipeline p = Pipeline.create();
 
         // 1 - Read from the Trade Source (sources.TradeSource)
-
+        p.drawFrom(TradeSource.tradeSource())
         // 2 - Use Native timestamps, no lag allowed
-
+        .withNativeTimestamps(0)
         // 3 - Compute sum of trades for 3-second intervals
         //
         // STEP 3.1
         // - Use 3 sec tumbling windows (defined in WindowDef.tumbling with size 3000
         // - Sum trade prices
-
+        .window(WindowDefinition.tumbling(3_000)
+                .setEarlyResultsPeriod(1_000))
+        .aggregate(AggregateOperations.summingLong(Trade::getPrice))
         // STEP 3.2
         // - Get speculative results every second
         // - Use early results when defining the window
         // - Watch the early result flag in the console output
 
-        // 4 - Drain to logger sink
 
+        // 4 - Drain to logger sink
+        .drainTo(Sinks.logger());
 
         return p;
     }
